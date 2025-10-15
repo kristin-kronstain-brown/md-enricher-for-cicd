@@ -1,4 +1,6 @@
-[{
+[
+  {
     "name": "both",
     "location": "internal,external"
-}]
+  }
+]

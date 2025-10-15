@@ -7,7 +7,7 @@ from sre_compile import isstring
 
 
 def addToList(self, details, log, fileNamePrevious, filePatch, fileStatus, folderAndFile, source_files,
-              location_contents_files, location_contents_folders, remove_all_other_files_folders):
+              location_contents_files, location_contents_folders, location_tag_processing, remove_all_other_files_folders):
 
     # Append the details about each file to the source_files dictionary
 
@@ -18,13 +18,15 @@ def addToList(self, details, log, fileNamePrevious, filePatch, fileStatus, folde
     # folderPath = downstream folder location - starts and ends with slash
     # file_name = downstream file name - does not start with a slash
 
-    def addToDictionary(dictionary, locationHandling, returnedFileName, returnedFolderName):
+    def addToDictionary(dictionary, fileNamePrevious, locationHandling, returnedFileName, returnedFolderName):
         # Add each of these values to the dictionary for this file
 
         if folderAndFile in dictionary:
             del dictionary[folderAndFile]
         if (returnedFolderName + returnedFileName) in dictionary:
             del dictionary[returnedFolderName + returnedFileName]
+        if not fileNamePrevious == 'None' and not fileNamePrevious.startswith('/'):
+            fileNamePrevious = '/' + fileNamePrevious
         dictionary[folderAndFile] = {}
         dictionary[folderAndFile]['folderAndFile'] = folderAndFile
         dictionary[folderAndFile]['file_name'] = returnedFileName
@@ -63,9 +65,9 @@ def addToList(self, details, log, fileNamePrevious, filePatch, fileStatus, folde
     (locationHandling,
      returnedFileName,
      returnedFolderName) = checkLocationsPaths(details, folderAndFile, location_contents_files,
-                                               location_contents_folders,
+                                               location_contents_folders, location_tag_processing,
                                                remove_all_other_files_folders, log)
 
-    source_files = addToDictionary(source_files, locationHandling, returnedFileName, returnedFolderName)
+    source_files = addToDictionary(source_files, fileNamePrevious, locationHandling, returnedFileName, returnedFolderName)
 
     return (source_files)

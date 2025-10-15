@@ -13,19 +13,18 @@ def cleanupEachFile(self, details):
         import os  # for running OS commands like changing directories or listing files in directory
         import re
         import shutil
-        import sys
         import time
 
         from mdenricher.errorHandling.errorHandling import addToWarnings
         from mdenricher.errorHandling.errorHandling import addToErrors
-        from mdenricher.cleanupEachFile.featureFlagMigration import featureFlagMigration
         from mdenricher.cleanupEachFile.writeResult import writeResult
         from mdenricher.sitemap.sitemapOLD import sitemapOLD
         from mdenricher.sitemap.sitemapYML import sitemapYML
         from mdenricher.sitemap.sitemapSUMMARY import sitemapSUMMARY
+        from mdenricher.sourceFileList.tocTagHandling import tocTagHandling
         # from mdenricher.setup.exitBuild import exitBuild
 
-        def fileHandlingDecisions(source_file, source_files):
+        def fileHandlingDecisions(self, source_file, source_files):
             if self.all_files_dict[source_file]['locationHandling'] == 'remove':
                 if os.path.isfile(self.location_dir + source_files[source_file]['folderPath'] + source_files[source_file]['file_name']):
                     os.remove(self.location_dir + source_files[source_file]['folderPath'] + source_files[source_file]['file_name'])
@@ -55,9 +54,8 @@ def cleanupEachFile(self, details):
                             topicContents = ''
                             self.log.debug('No topic contents.')
 
-                    if ((details['unprocessed'] is True) and
-                            (not file_name.endswith(tuple(details["img_output_filetypes"]))) and
-                            (details['featureFlagFile'] not in folderAndFile)):
+                    if ((self.location_tag_processing == "off") and
+                            (not file_name.endswith(tuple(details["img_output_filetypes"])))):
 
                         if not os.path.isdir(self.location_dir + folderPath):
                             os.makedirs(self.location_dir + folderPath)
@@ -72,11 +70,38 @@ def cleanupEachFile(self, details):
                                        ',locationHandling=' + locationHandling + ')')
                         if os.path.isfile(self.location_dir + folderPath + file_name):
                             os.remove(self.location_dir + folderPath + file_name)
-                        if os.path.isfile(details['source_dir'] + folderAndFile):
-                            shutil.copyfile(details['source_dir'] + folderAndFile, self.location_dir + folderPath + file_name)
-                            self.log.debug('Copied downstream without processing.')
+                            self.log.debug('Removing previous version of the file.')
+
+                        if folderAndFile == details['featureFlagFile']:
+                            featureFlagContents = json.loads(source_files[source_file]['fileContents'])
+                            newFeatureFlagContents = []
+                            for entry in featureFlagContents:
+                                try:
+                                    entryName = entry['name']
+                                    try:
+                                        locationJSON = entry['location'][self.location_name]
+                                    except Exception:
+                                        locationJSON = entry['location']
+                                    newFeatureFlagContents.append({
+                                        "name": entryName,
+                                        "location": locationJSON
+                                    })
+                                except Exception as e:
+                                    self.log.debug(e)
+                                    addToErrors('Could not revise unprocessed feature flag file: ' + entryName,
+                                                folderAndFile,
+                                                folderPath + file_name, details, self.log,
+                                                self.location_name, '', '')
+                                    break
+                            topicContentsJSON = json.dumps(newFeatureFlagContents, indent=2)
+                            writeResult(self, details, file_name, folderAndFile, folderPath, topicContentsJSON)
+
                         else:
-                            self.log.debug('Upstream version was deleted, so downstream version was deleted.')
+                            if os.path.isfile(details['source_dir'] + folderAndFile):
+                                shutil.copyfile(details['source_dir'] + folderAndFile, self.location_dir + folderPath + file_name)
+                                self.log.debug('Copied downstream without processing.')
+                            else:
+                                self.log.debug('Upstream version was deleted, so downstream version was deleted.')
 
                     elif file_name.endswith(tuple(details["img_output_filetypes"])):
                         self.log.debug('\n\n')
@@ -86,19 +111,18 @@ def cleanupEachFile(self, details):
                         self.log.debug('----------------------------------')
                         self.log.debug('(folderAndFile=' + folderAndFile + ',folderPath=' + folderPath + ',file_name=' + file_name +
                                        ',fileStatus=' + fileStatus + ',fileNamePrevious=' + fileNamePrevious + ')')
-                        self.log.debug('Images handled at the end of the build.')
-
-                    elif folderAndFile == details['featureFlagFile'] and details['feature_flag_migration'] is True:
-                        try:
-
-                            topicContents = featureFlagMigration(self, details)
-
-                            writeResult(self, details, file_name, folderAndFile, folderPath, topicContents)
-
-                        except Exception as e:
-                            print(e)
-                            print('Option not available outside of IBM.')
-                            sys.exit(1)
+                        if fileStatus == 'renamed':
+                            if os.path.isfile(self.location_dir + fileNamePrevious):
+                                os.remove(self.location_dir + fileNamePrevious)
+                                self.log.debug(source_file + ' was renamed in the upstream repo. Deleting ' +
+                                               fileNamePrevious + ' from ' + self.location_name + ' as well.')
+                        elif fileStatus == 'deleted':
+                            if os.path.isfile(self.location_dir + folderPath + file_name):
+                                os.remove(self.location_dir + folderPath + file_name)
+                                self.log.debug(source_file + ' was removed in the upstream repo. Deleting ' +
+                                               folderPath + file_name + ' from ' + self.location_name + ' as well.')
+                        else:
+                            self.log.debug('Images handled at the end of the build.')
 
                     elif file_name.endswith(tuple(details["filetypes"])):
 
@@ -110,7 +134,9 @@ def cleanupEachFile(self, details):
                         self.log.debug('(folderAndFile=' + folderAndFile + ',folderPath=' + folderPath + ',file_name=' + file_name +
                                        ',fileStatus=' + fileStatus + ',fileNamePrevious=' + fileNamePrevious + ')')
 
-                        if not details["reuse_snippets_folder"] in folderAndFile:
+                        if details["reuse_snippets_folder"] in folderAndFile:
+                            self.log.debug('Not handling ' + details["reuse_snippets_folder"] + ' individually.')
+                        else:
 
                             # Check the file status for 'renamed' and if so, use the fileNamePrevious to remove the old version of
                             # the file from the downstream repo. This can't be a part of the following if/elif because the new
@@ -123,8 +149,8 @@ def cleanupEachFile(self, details):
                                                   folderAndFile, folderPath + file_name, details, self.log, self.location_name, '', '')
                                 else:
                                     try:
-                                        if os.path.isfile(self.location_dir + '/' + fileNamePrevious):
-                                            os.remove(self.location_dir + '/' + fileNamePrevious)
+                                        if os.path.isfile(self.location_dir + fileNamePrevious):
+                                            os.remove(self.location_dir + fileNamePrevious)
                                             self.log.debug(source_file + ' was renamed in the upstream repo. Deleting ' +
                                                            fileNamePrevious + ' from ' + self.location_name + ' as well.')
                                     except Exception:
@@ -147,6 +173,7 @@ def cleanupEachFile(self, details):
                             # If the file is a text file in the supported text file list, then run the filecleanup loop at the top of the file over it
                             elif file_name.endswith(tuple(details["filetypes"])):
 
+                                # The filepaths are the differences between these two sections
                                 # If the subdirectory, doesn't exist in the downstream repo, create it
                                 if not os.path.isdir(self.location_dir + folderPath):
                                     try:
@@ -160,18 +187,16 @@ def cleanupEachFile(self, details):
                                                         folderAndFile, folderPath + file_name, details, self.log, self.location_name,
                                                         '', '')
 
-                                # The filepaths are the differences between these two sections
                                 if not os.path.isdir(self.location_dir + folderPath):
                                     self.log.debug('Folder does not exist in working dir: ' + self.location_dir + folderPath)
-                                else:
-                                    try:
-                                        fileCleanUpLoop(self, details, conrefJSON, file_name, folderAndFile, folderPath, topicContents)
-                                    except Exception as e:
-                                        self.log.debug(str(e))
-                                        self.log.debug('folderAndFile = ' + folderAndFile)
-                                        self.log.debug('file_name = ' + file_name)
-                                        self.log.debug('folderPath = ' + folderPath)
-                                        self.log.debug('fileNamePrevious = ' + fileNamePrevious)
+                                try:
+                                    self.all_files_dict = fileCleanUpLoop(self, details, conrefJSON, file_name, folderAndFile, folderPath, topicContents)
+                                except Exception as e:
+                                    self.log.debug(str(e))
+                                    self.log.debug('folderAndFile = ' + folderAndFile)
+                                    self.log.debug('file_name = ' + file_name)
+                                    self.log.debug('folderPath = ' + folderPath)
+                                    self.log.debug('fileNamePrevious = ' + fileNamePrevious)
 
                     if details['debug'] is True:
                         endTime = time.time()
@@ -183,6 +208,7 @@ def cleanupEachFile(self, details):
                     addToErrors('Could not complete processing for ' + folderAndFile + ': ' + str(e),
                                 folderAndFile, folderPath + file_name, details, self.log, self.location_name,
                                 '', '')
+            return (self.all_files_dict)
 
         def fileCleanUpLoop(self, details, conrefJSON, file_name, folderAndFile, folderPath, topicContents):
 
@@ -224,7 +250,14 @@ def cleanupEachFile(self, details):
                 startTime = time.time()
 
             from mdenricher.tags.tagRemoval import tagRemoval
-            topicContents = tagRemoval(self, details, folderAndFile, topicContents)
+            topicContents, self.all_files_dict = tagRemoval(self, details, folderAndFile, topicContents)
+
+            if (('/toc.yaml' in self.all_files_dict) and
+                    ('toc.yaml' in folderAndFile) and
+                    (details['ibm_cloud_docs'] is True) and
+                    ('<' in self.all_files_dict['/toc.yaml']['fileContents'])):  # type: ignore
+                self.log.debug('Found tags in toc.yaml')
+                self.all_files_dict = tocTagHandling(self, details, topicContents)
 
             if details['debug'] is True:
                 endTime = time.time()
@@ -291,7 +324,7 @@ def cleanupEachFile(self, details):
 
                 # If there is a sitemap.md, populate it with links
                 # This needs to happen after comments are handled
-                if (not details["ibm_cloud_docs_sitemap_depth"] == 'off'):
+                if (not details["ibm_cloud_docs_sitemap_depth"] == 'off') and self.location_tag_processing == "on":
                     if 'toc.yaml' in str(self.all_files_dict) and self.location_ibm_cloud_docs is True:
                         topicContents = sitemapYML(self, details, topicContents)
 
@@ -314,6 +347,8 @@ def cleanupEachFile(self, details):
             if details['debug'] is True:
                 startTime = time.time()
             writeResult(self, details, file_name, folderAndFile, folderPath, topicContents)
+            if folderAndFile == '/toc.yaml':
+                self.all_files_dict['/toc.yaml']['fileContents_output'] = topicContents
 
             if details['debug'] is True:
                 endTime = time.time()
@@ -326,7 +361,7 @@ def cleanupEachFile(self, details):
 
             if (folderAndFile.endswith('.yaml')) or (folderAndFile.endswith('.yml')):
                 from mdenricher.errorHandling.ymlCheck import ymlCheck
-                ymlCheck(details, self.log, 'True', [folderPath + file_name], [folderAndFile], self.location_dir, self.location_name)
+                ymlCheck(self, details, 'True', [folderPath + file_name], [folderAndFile], self.location_dir, self.location_name)
 
             if details['debug'] is True:
                 startTime = time.time()
@@ -349,6 +384,8 @@ def cleanupEachFile(self, details):
                 self.log.debug('writeTime: ' + writeTime)
                 self.log.debug('htmlValidatorTime: ' + htmlValidatorTime)
 
+            return (self.all_files_dict)
+
         if self.source_files == {}:
             self.log.debug('No files to process for ' + self.location_name + '.')
         else:
@@ -370,7 +407,7 @@ def cleanupEachFile(self, details):
             # Handle things like keyref and files to remove first
             for first_file in self.location_build_first:
                 if first_file in source_files:
-                    fileHandlingDecisions(self.all_files_dict[first_file]['folderAndFile'], source_files)
+                    self.all_files_dict = fileHandlingDecisions(self, self.all_files_dict[first_file]['folderAndFile'], source_files)
 
             # Handle the majority of files
             for source_file, source_file_info in source_files.items():
@@ -381,12 +418,12 @@ def cleanupEachFile(self, details):
                     except Exception:
                         self.log.debug('Not cleaning up: ' + source_file)
                     else:
-                        fileHandlingDecisions(fileToHandle, source_files)
+                        self.all_files_dict = fileHandlingDecisions(self, fileToHandle, source_files)
 
             # Handle things like the sitemap last
             for last_file in self.location_build_last:
                 if last_file in source_files:
-                    fileHandlingDecisions(self.all_files_dict[last_file]['folderAndFile'], source_files)
+                    self.all_files_dict = fileHandlingDecisions(self, self.all_files_dict[last_file]['folderAndFile'], source_files)
 
     except Exception as e:
         addToErrors('Could not complete the file cleanup steps for ' + self.location_name + ': ' + str(e),

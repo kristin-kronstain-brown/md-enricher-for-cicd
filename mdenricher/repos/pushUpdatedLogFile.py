@@ -187,8 +187,7 @@ def pushUpdatedLogFile(details, log):
             subprocessOutput = subprocess.Popen('git add --all', shell=True, stdout=PIPE, stderr=STDOUT)
             exitCode = parseSubprocessOutput(subprocessOutput, log)
             gitCommitCommand = 'git commit -m "'
-            if details["builder"] == 'travis':
-                gitCommitCommand = gitCommitCommand + '[ci skip]'
+            gitCommitCommand = gitCommitCommand + '[ci skip]'
             if not details["build_number"] is None:
                 gitCommitCommand = gitCommitCommand + ' Build ' + details["build_number"]
             try:

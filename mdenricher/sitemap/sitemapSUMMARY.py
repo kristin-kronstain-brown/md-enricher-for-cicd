@@ -20,7 +20,7 @@ def sitemapSUMMARY(self, details, topicContents):
                        'content defined in the TOC that is reused from other services.')
 
     self.CONTENT_REUSE_PAGES_FOLDER = 'reuse-pages'
-    self.CONTENT_REUSE_SNIPPETS_FOLDER = 'reuse-snippets'
+    self.CONTENT_REUSE_SNIPPETS_FOLDER = details['reuse_snippets_folder']
 
     # Break down one variable into 3
     if (details["ibm_cloud_docs_sitemap_depth"]).lower() == 'h1':

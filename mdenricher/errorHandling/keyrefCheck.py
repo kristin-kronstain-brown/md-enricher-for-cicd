@@ -15,7 +15,7 @@ def keyrefCheck(self, details, file_name, folderAndFile, folderPath, topicConten
     from mdenricher.errorHandling.errorHandling import addToErrors
     # from mdenricher.setup.exitBuild import exitBuild
 
-    if "a ibm" in topicContents.lower():
+    if " a ibm" in topicContents.lower():
         aIBMCount = (topicContents.lower()).count(" a ibm")
         if aIBMCount > 0:
             if aIBMCount == 1:
@@ -94,23 +94,24 @@ def keyrefCheck(self, details, file_name, folderAndFile, folderPath, topicConten
 
             # Then check if it's in the keyref.yaml file
             # These need to be warnings and not errors because of the examples in the writing repo
-            if os.path.isfile(self.location_dir + '/keyref.yaml') and productNameFound is False:
-                with open(self.location_dir + '/keyref.yaml', "r", encoding="utf8", errors="ignore") as stream:
-                    try:
-                        keyrefsAll = yaml.safe_load(stream)
-                    except yaml.YAMLError as exc:
-                        self.log.warning(exc)
-                        addToWarnings('YML not formatted properly. Check keyref.yaml for errors. ' +
-                                      str(exc), folderAndFile, '', details, self.log, self.location_name, '', '')
-                    else:
-                        keyrefs = keyrefsAll['keyword']
-                        if keyref not in keyrefs:
-                            addToWarnings('{{site.data.keyword.' + keyref + '}} could not be found in cloudoekeyrefs.yml or in keyref.yaml.',
-                                          folderAndFile, folderPath + file_name, details, self.log,
-                                          self.location_name, '', topicContents)
+            if self.location_tag_processing == 'on':
+                if os.path.isfile(self.location_dir + '/keyref.yaml') and productNameFound is False:
+                    with open(self.location_dir + '/keyref.yaml', "r", encoding="utf8", errors="ignore") as stream:
+                        try:
+                            keyrefsAll = yaml.safe_load(stream)
+                        except yaml.YAMLError as exc:
+                            self.log.warning(exc)
+                            addToWarnings('YML not formatted properly. Check keyref.yaml for errors. ' +
+                                          str(exc), folderAndFile, '', details, self.log, self.location_name, '', '')
+                        else:
+                            keyrefs = keyrefsAll['keyword']
+                            if keyref not in keyrefs:
+                                addToWarnings('{{site.data.keyword.' + keyref + '}} could not be found in cloudoekeyrefs.yml or in keyref.yaml.',
+                                              folderAndFile, folderPath + file_name, details, self.log,
+                                              self.location_name, '', topicContents)
 
-            # Since it's not in a keyref, it must be a product name error
-            elif productNameFound is False:
-                addToWarnings('{{site.data.keyword.' + keyref + '}} could not be found in cloudoekeyrefs.yml.',
-                              folderAndFile, folderPath + file_name, details, self.log,
-                              self.location_name, '', topicContents)
+                # Since it's not in a keyref, it must be a product name error
+                elif productNameFound is False:
+                    addToWarnings('{{site.data.keyword.' + keyref + '}} could not be found in cloudoekeyrefs.yml.',
+                                  folderAndFile, folderPath + file_name, details, self.log,
+                                  self.location_name, '', topicContents)

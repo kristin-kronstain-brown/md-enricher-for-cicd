@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 
 # Try it out!
@@ -26,7 +26,7 @@ Try out the Markdown Enricher with example markdown files.
     - `reuse-snippets`: Files that can be referenced in content markdown files and reused as necessary. [Learn more](reuse.md).
     - Markdown files: Content files, which can be stored in subfolders.
 
-1. Run the `mdenricher` command. [Learn more about mdenricher command options](setup.md).
+1. Run the `mdenricher` command. [Learn more about `mdenricher` command options](setup.md).
     ```
     mdenricher --source_dir <SOURCE_FILES_DIRECTORY> --output_dir <OUTPUT_FILES_DIRECTORY> --locations_file <PATH>/locations.json
     ```

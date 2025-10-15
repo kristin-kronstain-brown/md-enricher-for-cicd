@@ -37,6 +37,8 @@ def htmlValidator(self, details, file_name, folderAndFile, folderPath, topicCont
                 self.log.debug('Underscore in tags indicates a variable instead of a tag: ' + errorTagSlim)
             elif errorTagSlim == 'value' or errorTagSlim == 'username' or errorTagSlim == 'password':
                 self.log.debug('Common variable names used and interpreted as a variable instead of a tag: ' + errorTagSlim)
+            elif errorTagSlim in self.tags_ignore:
+                self.log.debug(errorTagSlim + ' intentionally remains in the content.')
             else:
                 addToWarnings(errorTag + ' appears to be a tag and is not removed or handled properly. ', folderAndFile, folderPath + file_name,
                               details, self.log, self.location_name, errorTag, topicContentsCheck)
@@ -100,6 +102,7 @@ def htmlValidator(self, details, file_name, folderAndFile, folderPath, topicCont
         if ((file_name.endswith('.md')) and
                 (topicContentsCodeCheck.count('\n# ') > 1) and
                 (not file_name == 'conref.md') and
+                (self.location_tag_processing == "on") and
                 ('content-type: api-docs' not in topicContents)):
             addToWarnings('Too many H1 headings.', folderAndFile, folderPath + file_name, details, self.log,
                           self.location_name, '', topicContents)

@@ -17,6 +17,7 @@ def tagRemoval(self, details, folderAndFile, topicContents):
 
     # from mdenricher.errorHandling.errorHandling import addToWarnings
     from mdenricher.errorHandling.errorHandling import addToErrors
+    from mdenricher.tags.tagRemovalJSON import tagRemovalJSON
     # from mdenricher.setup.exitBuild import exitBuild
 
     def sectionLoop(details, closedTag, openTag, sectionList, topicContents):
@@ -91,7 +92,16 @@ def tagRemoval(self, details, folderAndFile, topicContents):
                 topicContents = re.sub(openTag, '', topicContents, flags=re.DOTALL)
                 topicContents = re.sub(closedTag, '', topicContents, flags=re.DOTALL)
 
-    else:
-        self.log.debug('No tags in this file to handle.')
+    if folderAndFile.endswith('.json') or folderAndFile.endswith('.yaml') or folderAndFile.endswith('.yml'):
 
-    return (topicContents)
+        topicContentsOriginal = topicContents
+
+        topicContents, self.all_files_dict = tagRemovalJSON(self, details, folderAndFile, topicContents)
+
+        # Put quotation marks back into toc.yaml
+        if details['ibm_cloud_docs'] is True and 'toc.yaml' in folderAndFile and '"' in topicContentsOriginal:
+            quotationMarkEntries = re.findall(': "(.*?)"', topicContentsOriginal)
+            for quotationMarkEntry in quotationMarkEntries:
+                topicContents = topicContents.replace(': ' + quotationMarkEntry, ': "' + quotationMarkEntry + '"')
+
+    return (topicContents, self.all_files_dict)

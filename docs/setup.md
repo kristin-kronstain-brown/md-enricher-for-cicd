@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 
 
@@ -38,11 +38,11 @@ Note:
 
 ### `config` section
 
-`source_github_branch` is the only required key when running on each commit in Travis or Jenkins to differentiate the main branch that other development branches are made from. For the other keys, if unspecified, the default values are used.
+`source_github_branch` is the only required key when running on each commit in a CI/CD tool to differentiate the main branch that other development branches are made from. For the other keys, if unspecified, the default values are used.
 
 |Name|Default values|Description|
 |---|---|---|
-|`source_github_branch`|String |Required when running on each commit in Travis or Jenkins to differentiate the main branch from other development branches that are made from it. For the value, enter the name of the upstream branch, such as `main`, `master` or `source`. Not required for local builds.|
+|`source_github_branch`|String |Required when running on each commit to differentiate the main branch from other development branches that are made from it. For the value, enter the name of the upstream branch, such as `main` or `source`. Not required for local builds.|
 |`filetypes`|`.html, .json, .md, .yml, .yaml, .txt, toc`|Optional. The types of files that are processed by the Markdown Enricher.|
 |`img_output_filetypes`|`.gif, .GIF, .jpg, .JPG, .jpeg, .JPEG, .mp4, .MP4, .png, .PNG, .svg, .SVG`|Optional. Images that are referenced in content files and are stored in the `images` directory.|
 |`img_src_filetypes`|`.ai, .AI, .psd, .PSD, .sketch, .svg, .SVG`|Optional. Image source files that might not be referenced in content files. These source files must have the same file name as their output counterparts and must be stored in the `images` directory.|
@@ -60,9 +60,10 @@ The `location` name is the only required key. For the other keys, if unspecified
 |---|---|---|
 |`location`|String| Required. The name of the location. This name can be used as tags in content.|
 |`location_build`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. You can choose to generate output (`on`) or not generate output (`off`) for a location to speed up the overall build. Even when not generating output, the location name must still be included in the locations file so that the tags can be handled appropriately.|
+|`location_tag_processing`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. When set to `off`, content can be pushed to downstream locations without handling any tags. This option allows you to set up downstream builds that are configured differently from the original source build, but continue to single-source the content itself.|
 |`location_output_action`|<ul><li>`none` (default)</li><li>`merge-automatically`</li><li>`create-pr`</li></ul>| Optional. Allowed values: <ul><li>`none`: Output is generated and not merged into any Github branch. Use `none` when you want to generate output locally or you want to push the output to a location outside of Github.</li><li>`merge-automatically`: Output is generated and merged into the downstream location, if specified specified. Helpful for staging content.</li><li>`create-pr`: Output is generated and a pull request is created for you to review and merge into the downstream location specified. Helpful for production content.</li></ul>|
 |`location_github_url`|String|Required when `location_output_action` is set to something other than `none`. The URL for the downstream location. Example: `https://github.com/org/repo`|
-|`location_github_branch`|String|Required when `location_output_action` is set to something other than `none`. The name of the branch to push output to in the downstream location. Example: `main`<p>If the branch does not exist yet on first run, and the upstream and downstream repos are the same, then the `source_github_branch` is cloned and then the `location_github_branch` branch is checked out. If the upstream and downstream repos are not the same, then the default branch in the downstream repo is cloned and then the `location_github_branch` branch is checked out.  In either case, all files are processed on this first run, not only the files that were edited.<p> |
+|`location_github_branch`|String|Required when `location_output_action` is set to something other than `none`. The name of the branch to push output to in the downstream location. Example: `main`<p>If the branch does not exist yet on first run, and the upstream and downstream repos are the same, then the `source_github_branch` is cloned and then the `location_github_branch` branch is checked out. If the upstream and downstream repos are not the same, then the default branch in the downstream repo is cloned and then the `location_github_branch` branch is checked out. In either case, all files are processed on this first run, not only the files that were edited.<p> |
 |`location_comments`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. HTML comments can be included (`on`) or excluded (`off`) in the output.|
 |`location_commit_summary_style`|<ul><li>`Author`</li><li>`AuthorAndSummary` (default)</li><li>`AuthorAndUpdate`</li><li>`BuildNumber`</li><li>`BuildNumberAndSummary`</li><li>`CommitID`</li><li>`CommitIDAndSummary`</li><li>`CommitIDAndAuthor`</li><li>`Summary`</li><li>`UpdateAndDate`</li><li>Enter your own text.</li></ul>|Optional. The display of the Git commit summary when pushing output downstream. |
 |`location_contents`|JSON|Optional. Special handling of individual files and folders for a downstream location.|
@@ -138,10 +139,9 @@ The `mdenricher` command kicks things off. These are the available options to se
 
 |Option|Description|
 |----------|-----------|
-|`--builder`| Optional. Include `--builder local` to force builds running in Travis or Jenkins to behave like a `local` build. Ensures that source Git repository information retrieval or output handling do not affect the outcome of the build. |
+|`--builder`| Optional. Include `--builder local` to force builds running in CI/CD tools to behave like a `local` build. Ensures that source Git repository information retrieval or output handling do not affect the outcome of the build. |
 |`--cleanup_flags_and_content <tag1,tag2,tag3>`| Optional. Include locally with `--source_dir` to remove an outdated feature flag and all of the content within it from all files in the directory. For example, you might have set outdated content within a specific flag to hidden, now that flag and the content within it can be removed. Separate more than one tag with a comma. Do not include spaces.|
 |`--cleanup_flags_not_content <tag1,tag2,tag3>`| Optional. Include locally with `--source_dir` to remove an outdated feature flag from all files in the directory, but not the content within it. For example, you might have set new content within a specific flag to `all` or all of the locations it needs to be in, so now that flag can be removed, but the content within the tags must remain. Separate more than one tag with a comma. Do not include spaces.|
-|`--feature_flag_migration`| Optional with the `--unprocessed` option. You can use this option when you have a multi-directory upstream repo to single-source content with feature flags that apply to that repo, but are migrated to a simpler feature flag file to be processed again by the downstream location's build.|
 |`--gh_token`| The Github token to access the upstream and downstream repositories.|
 |`--gh_username`| The Github username to access the upstream and downstream repositories.|
 |`--locations_file <path_to_locations_file>`|Required. The path to the JSON file of locations to create content for.|
@@ -157,8 +157,7 @@ The `mdenricher` command kicks things off. These are the available options to se
 |`--slack_webhook ${SLACK_WEBHOOK}`|Optional. One or more comma-separated webhooks for Slack channels to post error messages to. This value can be an environment variable.|
 |`--source_dir <path_to_source_directory>`|Required. The path to a content directory or a cloned Github repo.|
 |`--test_only`|Optional. Performs a check without pushing the results anywhere.|
-|`--unprocessed`|Optional. Pushes files from upstream to downstream locations without processing any tags or formatting. This option is helpful when you are single-sourcing content in a unique way, but want to use an already established system of builds with a standard locations file.|
-|`--unprocessed_update`|Optional. If you are using the `--unprocessed` option to generate output without processing tags or formatting, you can push changes from downstream content back to the upstream content as well. This option does not work if the `--unprocessed` option is not used in the original build command and tags and formatting are processed.|
+|`--unprocessed_update`|Optional. If you set `location_tag_processing` to `off` to generate output without processing tags or formatting, you can push changes from downstream content back to the upstream content as well.|
 |`--version`|View the installed version of the Markdown Enricher.|
 
 

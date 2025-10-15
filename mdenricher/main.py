@@ -47,7 +47,6 @@ from mdenricher.tags.tagListCompile import tagListCompile
 def main(
          builder,
          debug,
-         feature_flag_migration,
          gh_username,
          gh_token,
          ibm_cloud_docs,
@@ -69,7 +68,6 @@ def main(
          slack_webhook,
          source_dir,
          test_only,
-         unprocessed,
          unprocessed_update,
          validation,
          version):
@@ -102,7 +100,7 @@ def main(
 
         def __init__(self,
                      threadID,
-                     all_tags,
+                     all_location_names,
                      location,
                      location_name,
                      source_files_original_list,
@@ -110,7 +108,7 @@ def main(
 
             threading.Thread.__init__(self)
             self.threadID = threadID
-            self.all_tags = all_tags
+            self.all_location_names = all_location_names
             self.location = location
             self.location_name = location_name
             self.source_files_original_list = source_files_original_list
@@ -136,12 +134,13 @@ def main(
             for changedFile in self.source_files_original_list:
                 self.log.debug(changedFile)
             self.log.debug('\n')
+            self.source_files_commit_list = self.source_files_original_list.copy()
 
             (location_build, location_comments, location_commit_summary_style,
              location_contents, location_contents_files, location_contents_folders,
              location_downstream_build_url, location_github_branch,
              location_github_branch_pr, location_github_url, location_ibm_cloud_docs,
-             location_internal_framework, location_output_action,
+             location_internal_framework, location_output_action, location_tag_processing,
              remove_all_other_files_folders) = locations(details, self.location, log)
 
             self.location_build = location_build
@@ -163,7 +162,11 @@ def main(
             self.location_internal_framework = location_internal_framework
             # location_name set in init
             self.location_output_action = location_output_action
+            self.location_tag_processing = location_tag_processing
             self.remove_all_other_files_folders = remove_all_other_files_folders
+            self.tags_hide = []
+            self.tags_show = []
+            self.tags_ignore = []
 
             conref_files_list = []  # type: ignore
             filesForOtherLocations = []  # type: ignore
@@ -191,18 +194,26 @@ def main(
                 self.location_contents_folders_remove_and_files = location_contents_folders_remove_and_files
 
                 # Get a list of all of the files that the scripts work with
-                all_files_get_result = allFilesGet(details, self.location_contents_files, self.location_contents_files_keep,
-                                                   self.location_contents_files_remove, self.location_contents_folders,
+                all_files_get_result = allFilesGet(details, self.location_build_first,
+                                                   self.location_contents_files,
+                                                   self.location_contents_files_keep,
+                                                   self.location_contents_files_remove,
+                                                   self.location_contents_folders,
                                                    self.location_contents_folders_keep,
                                                    self.location_contents_folders_remove_and_files,
-                                                   self.location_ibm_cloud_docs, self.log,
-                                                   self.remove_all_other_files_folders, self.source_files_original_list)
+                                                   self.location_ibm_cloud_docs,
+                                                   self.location_tag_processing,
+                                                   self.log,
+                                                   self.remove_all_other_files_folders,
+                                                   self.source_files_original_list)
                 self.all_files_dict = all_files_get_result[0]
                 self.conref_files_list = all_files_get_result[1]
                 self.expected_output_files = all_files_get_result[2]
                 self.image_files_list = all_files_get_result[3]
                 self.sitemap_file = all_files_get_result[4]
                 self.filesForOtherLocations = all_files_get_result[5]
+                self.location_build_first = all_files_get_result[6]
+                self.source_files_original_list = all_files_get_result[7]
                 allSourceFiles.update(self.all_files_dict)
 
                 debugTimerEnd(self, details, 'allFilesGet', startTimeSection)
@@ -238,8 +249,9 @@ def main(
                 startTimeSection = debugTimerStart()
                 if self.source_files_original_list == {}:
                     source_files_location_list = self.all_files_dict
-                elif details['featureFlagFile'] in self.source_files_original_list or '/toc.yaml' in self.source_files_original_list:
+                elif details['featureFlagFile'] in self.source_files_commit_list or '/toc.yaml' in self.source_files_commit_list:
                     source_files_location_list = self.all_files_dict
+                    self.log.debug('toc.yaml or feature flag file found in original list. Rebuilding all.')
                 else:
                     # Rebuild the list with the status, patch, and previous name from git, but use the downstream folder and file name from the all files list
                     source_files_location_list = {}
@@ -297,7 +309,6 @@ def main(
                                 source_files_location_list[source_files_original]['fileStatus'] = fileStatus
                                 source_files_location_list[source_files_original]['filePatch'] = filePatch
                                 source_files_location_list[source_files_original]['fileNamePrevious'] = fileNamePrevious
-                                source_files_location_list[source_files_original]['fileNamePrevious'] = fileNamePrevious
                                 source_files_location_list[source_files_original]['fileContents'] = fileContents
                                 source_files_location_list[source_files_original]['locationHandling'] = locationHandling
                             except Exception as e:
@@ -325,6 +336,7 @@ def main(
                 self.log.debug('location_ibm_cloud_docs: %s', str(self.location_ibm_cloud_docs))
                 self.log.debug('location_name: %s', str(self.location_name))
                 self.log.debug('location_output_action: %s', str(self.location_output_action))
+                self.log.debug('location_tag_processing: %s', str(self.location_tag_processing))
                 self.log.debug('sitemap_file: %s', str(self.sitemap_file))
                 self.log.debug('remove_all_other_files_folders: ' + str(self.remove_all_other_files_folders))
                 self.log.debug('\n\n')
@@ -410,7 +422,9 @@ def main(
 
                     debugTimerEnd(self, details, 'clone', startTimeSection)
 
-                    if details['unprocessed'] is False:
+                    if self.location_tag_processing == "off":
+                        self.location_build_first, self.location_build_last, self.source_files = sourceFilesForThisBranch(self, details)
+                    else:
 
                         # If there is a cloned repo, do stuff with it.
                         # There might not be for the CLI and SUB_REPO.
@@ -420,11 +434,9 @@ def main(
 
                             # Create a list of tags with show/hide values for this branch
                             startTimeSection = debugTimerStart()
-                            tags_hide, tags_show = tagListCompile(self, details)
+                            self.all_tags = self.all_location_names
+                            self = tagListCompile(self, details)
                             debugTimerEnd(self, details, 'tagListCompile', startTimeSection)
-
-                            self.tags_hide = tags_hide
-                            self.tags_show = tags_show
 
                             # Revise the source list based on the branch.
                             # For example, the original commit might only contain a conref file.
@@ -432,9 +444,6 @@ def main(
                             startTimeSection = debugTimerStart()
                             self.location_build_first, self.location_build_last, self.source_files = sourceFilesForThisBranch(self, details)
                             debugTimerEnd(self, details, 'sourceFilesForThisBranch', startTimeSection)
-
-                    else:
-                        self.location_build_first, self.location_build_last, self.source_files = sourceFilesForThisBranch(self, details)
 
                     # Actually do the conref and tag replacements in the new source file list
                     startTimeSection = debugTimerStart()
@@ -514,7 +523,6 @@ def main(
 
         details = {}
         details.update({"debug": debug})
-        details.update({"feature_flag_migration": feature_flag_migration})
         details.update({"ibm_cloud_docs": ibm_cloud_docs})
         details.update({"ibm_cloud_docs_sitemap_depth": ibm_cloud_docs_sitemap_depth})
         details.update({"ibm_cloud_docs_sitemap_rebuild_always": ibm_cloud_docs_sitemap_rebuild_always})
@@ -527,7 +535,6 @@ def main(
         details.update({"slack_user_mapping": slack_user_mapping})
         details.update({"slack_webhook": slack_webhook})
         details.update({"tool_name": 'md-enricher-for-cicd'})
-        details.update({"unprocessed": unprocessed})
         details.update({"validation": validation})
         details.update({"version": version})
 
@@ -846,7 +853,7 @@ def main(
         details.update({"ibm_cloud_docs_product_names": ibm_cloud_docs_product_names})
         details.update({"ibm_cloud_docs_keyref_check": ibm_cloud_docs_keyref_check})
 
-        all_tags = []
+        all_location_names = []
         all_locations: list[str] = []  # type: ignore[misc]
         allSourceFiles = {}  # type: ignore[var-annotated]
 
@@ -856,7 +863,7 @@ def main(
         for location in locations_json_list:
             location_name = location["location"]
 
-            all_tags.append(location_name)
+            all_location_names.append(location_name)
 
             # Verify that the combination of the URL, branch, and PR branch are unique to avoid
             # accidentally overwriting content by pushing to the same location multiple times
@@ -904,20 +911,20 @@ def main(
                     all_locations = checkLocation(all_locations, location_info)
 
         join_comma = ', '
-        log.info('Locations can be used as tags: %s', join_comma.join(all_tags))
-        details.update({"location_tags": all_tags})
+        log.info('Locations can be used as tags: %s', join_comma.join(all_location_names))
+        details.update({"location_tags": all_location_names})
 
         if unprocessed_update is not False:
             if unprocessed_update is True or unprocessed_update is None:
-                unprocessed_update = all_tags
-            elif unprocessed_update not in all_tags:
+                unprocessed_update = all_location_names
+            elif unprocessed_update not in all_location_names:
                 addToErrors('The value for --unprocessed_update must be a location name. ',
                             details["locations_file"], '', details, log, 'pre-build', '', '')
                 exitBuild(details, log)
         details.update({"unprocessed_update": unprocessed_update})
 
         # Feature flag compile
-        details = featureFlagListCompile(log, details, all_tags)
+        details = featureFlagListCompile(log, details, all_location_names)
 
         # Make a list of enricher required JSON files for pre-build check
         enricher_json_files = ['/' + details["reuse_snippets_folder"] + '/' + details["reuse_phrases_file"],
@@ -1002,7 +1009,7 @@ def main(
         for location in locations_json_list:
 
             thread = locationByThread(threadID,
-                                      all_tags,
+                                      all_location_names,
                                       location,
                                       location['location'],
                                       source_files_original_list,

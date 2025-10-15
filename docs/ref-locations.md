@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 
 # Locations file
@@ -11,7 +11,7 @@
 
 |Name|Default values|Description|
 |---|---|---|
-|`source_github_branch`|String |Required when running on each commit in Travis or Jenkins to differentiate the main branch from other development branches that are made from it. For the value, enter the name of the upstream branch, such as `main`, `master` or `source`. Not required for local builds.|
+|`source_github_branch`|String |Required when running on each commit to differentiate the main branch from other development branches that are made from it. For the value, enter the name of the upstream branch, such as `main` or `source`. Not required for local builds.|
 |`filetypes`|`.html, .json, .md, .yml, .yaml, .txt, toc`|Optional. The types of files that are processed by the Markdown Enricher.|
 |`img_output_filetypes`|`.gif, .GIF, .jpg, .JPG, .jpeg, .JPEG, .mp4, .MP4, .png, .PNG, .svg, .SVG`|Optional. Images that are referenced in content files and are stored in the `images` directory.|
 |`img_src_filetypes`|`.ai, .AI, .psd, .PSD, .sketch, .svg, .SVG`|Optional. Image source files that might not be referenced in content files. These source files must have the same file name as their output counterparts and must be stored in the `images` directory.|
@@ -28,9 +28,10 @@
 |---|---|---|
 |`location`|String| Required. The name of the location. This name can be used as tags in content.|
 |`location_build`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. You can choose to generate output (`on`) or not generate output (`off`) for a location to speed up the overall build. Even when not generating output, the location name must still be included in the locations file so that the tags can be handled appropriately.|
+|`location_tag_processing`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. When set to `off`, content can be pushed to downstream locations without handling any tags. This option allows you to set up downstream builds that are configured differently from the original source build, but continue to single-source the content itself.|
 |`location_output_action`|<ul><li>`none` (default)</li><li>`merge-automatically`</li><li>`create-pr`</li></ul>| Optional. Allowed values: <ul><li>`none`: Output is generated and not merged into any Github branch. Use `none` when you want to generate output locally or you want to push the output to a location outside of Github.</li><li>`merge-automatically`: Output is generated and merged into the downstream location, if specified specified. Helpful for staging content.</li><li>`create-pr`: Output is generated and a pull request is created for you to review and merge into the downstream location specified. Helpful for production content.</li></ul>|
 |`location_github_url`|String|Required when `location_output_action` is set to something other than `none`. The URL for the downstream location. Example: `https://github.com/org/repo`|
-|`location_github_branch`|String|Required when `location_output_action` is set to something other than `none`. The name of the branch to push output to in the downstream location. Example: `main`<p>If the branch does not exist yet on first run, and the upstream and downstream repos are the same, then the `source_github_branch` is cloned and then the `location_github_branch` branch is checked out. If the upstream and downstream repos are not the same, then the default branch in the downstream repo is cloned and then the `location_github_branch` branch is checked out.  In either case, all files are processed on this first run, not only the files that were edited.<p> |
+|`location_github_branch`|String|Required when `location_output_action` is set to something other than `none`. The name of the branch to push output to in the downstream location. Example: `main`<p>If the branch does not exist yet on first run, and the upstream and downstream repos are the same, then the `source_github_branch` is cloned and then the `location_github_branch` branch is checked out. If the upstream and downstream repos are not the same, then the default branch in the downstream repo is cloned and then the `location_github_branch` branch is checked out. In either case, all files are processed on this first run, not only the files that were edited.<p> |
 |`location_comments`|<ul><li>`on` (default)</li><li>`off`</li></ul>|Optional. HTML comments can be included (`on`) or excluded (`off`) in the output.|
 |`location_commit_summary_style`|<ul><li>`Author`</li><li>`AuthorAndSummary` (default)</li><li>`AuthorAndUpdate`</li><li>`BuildNumber`</li><li>`BuildNumberAndSummary`</li><li>`CommitID`</li><li>`CommitIDAndSummary`</li><li>`CommitIDAndAuthor`</li><li>`Summary`</li><li>`UpdateAndDate`</li><li>Enter your own text.</li></ul>|Optional. The display of the Git commit summary when pushing output downstream. |
 |`location_contents`|JSON|Optional. Special handling of individual files and folders for a downstream location.|

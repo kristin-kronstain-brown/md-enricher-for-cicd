@@ -3,18 +3,27 @@
 # SPDX-License-Identifier: Apache2.0
 #
 
-def allFilesGet(details, location_contents_files, location_contents_files_keep, location_contents_files_remove,
-                location_contents_folders, location_contents_folders_keep,
-                location_contents_folders_remove_and_files, location_ibm_cloud_docs,
-                log, remove_all_other_files_folders, source_files_original_list):
+def allFilesGet(details,
+                location_build_first,
+                location_contents_files,
+                location_contents_files_keep,
+                location_contents_files_remove,
+                location_contents_folders,
+                location_contents_folders_keep,
+                location_contents_folders_remove_and_files,
+                location_ibm_cloud_docs,
+                location_tag_processing,
+                log,
+                remove_all_other_files_folders,
+                source_files_original_list):
 
-    from mdenricher.sourceFileList.tocTagHandling import tocTagHandling
+    # from mdenricher.sourceFileList.tocTagHandling import tocTagHandling
 
     # Create a list of all of the files in the repo so we can sort through them and choose which ones to loop over.
     # Like if a conref file changes, this list will be used to look inside each file to see if that conref is used in it
 
     def allFileCheck(details, path, file, folder_name, all_files_dict, conref_files_list,
-                     expected_output_files, filesForOtherLocations, image_files_list):
+                     expected_output_files, filesForOtherLocations, image_files_list, source_files_original_list):
 
         try:
             userMapping = str(details["slack_user_mapping"].rsplit('/', 1)[1])
@@ -25,6 +34,7 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
         filesToRemove = ['.travis.yml',
                          '.pre-commit-config.yaml',
                          'cloudoekeyrefs.yml',
+                         'Jenkinsfile',
                          'toc_schema.json',
                          'user-mapping.json',
                          str(details["locations_file"].rsplit('/', 1)[1]),
@@ -51,6 +61,14 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
         elif ((file in filesToRemove) and (location_ibm_cloud_docs is True)):
             filesForOtherLocations.append(file)
 
+        if ('toc.yaml' in file) and (file not in filesToRemove) and (details['ibm_cloud_docs'] is True):
+            # if not file == str(details["reuse_phrases_file"]):
+            # log.info('Handling filetypes: ' + folder_name + file)
+            if not folder_name + file in source_files_original_list:
+                source_files_original_list = addToList('None', details, log, fileNamePrevious, 'None', fileStatus,
+                                                       folder_name + file, source_files_original_list, location_contents_files,
+                                                       location_contents_folders, location_tag_processing, remove_all_other_files_folders)
+
         # Include them if they start with a folder that's meant to be kept
         # Even if all other files are going to be removed
         if file.endswith(tuple(details["filetypes"])) and (file not in filesToRemove):
@@ -58,29 +76,29 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
             # log.info('Handling filetypes: ' + folder_name + file)
             all_files_dict = addToList('None', details, log, fileNamePrevious, 'None', fileStatus,
                                        folder_name + file, all_files_dict, location_contents_files,
-                                       location_contents_folders, remove_all_other_files_folders)
+                                       location_contents_folders, location_tag_processing, remove_all_other_files_folders)
 
         if file.endswith(tuple(details["img_src_filetypes"])):
             # Will be automatically removed
             all_files_dict = addToList('None', details, log, fileNamePrevious, 'None', fileStatus,
                                        folder_name + file, all_files_dict, location_contents_files,
-                                       location_contents_folders, remove_all_other_files_folders)
+                                       location_contents_folders, location_tag_processing, remove_all_other_files_folders)
 
         # Changed order to get .drawio.svg before .svg
         if file.endswith(tuple(details["img_output_filetypes"])):
             image_files_list.append(path + '/' + file)
             all_files_dict = addToList('None', details, log, fileNamePrevious, 'None', fileStatus,
                                        folder_name + file, all_files_dict, location_contents_files,
-                                       location_contents_folders, remove_all_other_files_folders)
+                                       location_contents_folders, location_tag_processing, remove_all_other_files_folders)
             # log.info('Handling image filetypes: ' + folder_name + file)
 
         if (details["reuse_snippets_folder"] in path):
-            if (not file == str(details["reuse_phrases_file"])) and details['unprocessed'] is False:
+            if (not file == str(details["reuse_phrases_file"])):
                 conref_files_list.append(folder_name + file)
-            elif details['unprocessed'] is True:
+            else:
                 all_files_dict = addToList('None', details, log, fileNamePrevious, 'None', fileStatus,
                                            folder_name + file, all_files_dict, location_contents_files,
-                                           location_contents_folders, remove_all_other_files_folders)
+                                           location_contents_folders, location_tag_processing, remove_all_other_files_folders)
 
         try:
             if all_files_dict[folder_name + file]['folderPath'] not in expected_output_files:
@@ -90,7 +108,7 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
         except Exception:
             pass
 
-        return (all_files_dict, conref_files_list, expected_output_files, filesForOtherLocations, image_files_list)
+        return (all_files_dict, source_files_original_list, conref_files_list, expected_output_files, filesForOtherLocations, image_files_list)
 
     # All of these list entries always start with a slash
 
@@ -142,16 +160,18 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
             for file in sorted(allFiles):
                 if not file.startswith('.git'):
                     (all_files_dict,
+                     source_files_original_list,
                      conref_files_list, expected_output_files,
                      filesForOtherLocations,
                      image_files_list) = allFileCheck(details, path, file, folder_name,
                                                       all_files_dict,
                                                       conref_files_list, expected_output_files,
                                                       filesForOtherLocations,
-                                                      image_files_list)
+                                                      image_files_list, source_files_original_list)
 
     # Add things that might have been deleted
-    for source_file in source_files_original_list:
+    source_files_original_list_copy = source_files_original_list.copy()
+    for source_file in source_files_original_list_copy:
         if source_file[1:] not in allFiles and not source_file.startswith('.git'):
             if '/' in source_file[1:]:
                 folder_name, file = source_file[1:].rsplit('/', 1)
@@ -163,14 +183,16 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
                 folder_name = '/'
                 file = source_file[1:]
             (all_files_dict,
+             source_files_original_list,
              conref_files_list, expected_output_files,
              filesForOtherLocations,
              image_files_list) = (allFileCheck(details, details["source_dir"],
                                                file, folder_name, all_files_dict,
                                                conref_files_list, expected_output_files, filesForOtherLocations,
-                                               image_files_list))
+                                               image_files_list, source_files_original_list))
 
     # Check TOC files for tagging to apply to the content files
+    '''
     if ('/toc.yaml' in all_files_dict) and (details['ibm_cloud_docs'] is True) and ('<' in all_files_dict['/toc.yaml']['fileContents']):  # type: ignore
         log.debug('Found tags in toc.yaml')
 
@@ -189,12 +211,26 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
             tagList.append('all:' + ','.join(details['location_tags']))
 
         # Feature flag tags
-        for tagJSON in details['featureFlags']:
-            tagList.append(tagJSON['name'] + ':' + tagJSON['location'])
+        for tagJSON in details["featureFlags"]:
+            tagLocation = tagJSON['location']
+            if type(tagLocation) is str:
+                tagList.append(tagJSON['name'] + ':' + tagLocation)
+            else:
+                tagLocations = tagJSON['location']
+                enabledList = []
+                for locationName in tagLocations:
+                    tagLocation = tagLocations[locationName]
+                    if tagLocation == 'all' or tagLocation == 'enabled':
+                        enabledList.append(locationName)
+                if enabledList == []:
+                    tagList.append(tagJSON['name'] + ':hidden')
+                else:
+                    tagList.append(tagJSON['name'] + ':' + ','.join(enabledList))
 
         log.debug('Tag list: ' + ', '.join(tagList))
 
         all_files_dict = tocTagHandling(log, details, all_files_dict, tagList)
+    '''
 
     conref_files_list.sort()
     image_files_list.sort()
@@ -209,4 +245,5 @@ def allFilesGet(details, location_contents_files, location_contents_files_keep, 
     # log.info('\nIMAGE_FILES_LIST:')
     # log.info(image_files_list)
 
-    return (all_files_dict, conref_files_list, expected_output_files, image_files_list, sitemap_file, filesForOtherLocations)
+    return (all_files_dict, conref_files_list, expected_output_files, image_files_list,
+            sitemap_file, filesForOtherLocations, location_build_first, source_files_original_list)
