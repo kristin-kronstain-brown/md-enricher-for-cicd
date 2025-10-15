@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 
 # Running locally
@@ -21,7 +21,7 @@ To test your content changes locally before committing them to the source repo o
     ```
 1. Create a [`locations.json`](setup.md) file. 
 1. Open a command line terminal.
-1. Run the [mdenricher command](setup.md). Example: 
+1. Run the [`mdenricher` command](setup.md). Example: 
    ```
 mdenricher --source_dir <PATH_TO_UPSTREAM_LOCAL_CLONE> --output_dir <OUTPUT_DIRECTORY> --locations_file <PATH_TO>/locations.json 
 ```

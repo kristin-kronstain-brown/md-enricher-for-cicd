@@ -122,7 +122,12 @@ def locations(details, location, log):
     except KeyError:
         location_downstream_build_url = None
 
+    try:
+        location_tag_processing = location["location_tag_processing"]
+    except KeyError:
+        location_tag_processing = "on"
+
     return (location_build, location_comments,
             location_commit_summary_style, location_contents, location_contents_files,
             location_contents_folders, location_downstream_build_url, location_github_branch, location_github_branch_pr, location_github_url,
-            location_ibm_cloud_docs, location_internal_framework, location_output_action, remove_all_other_files_folders)
+            location_ibm_cloud_docs, location_internal_framework, location_output_action, location_tag_processing, remove_all_other_files_folders)

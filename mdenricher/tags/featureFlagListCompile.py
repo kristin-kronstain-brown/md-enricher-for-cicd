@@ -1,4 +1,4 @@
-def featureFlagListCompile(log, details, all_tags):
+def featureFlagListCompile(log, details, all_location_names):
 
     import json
     import os
@@ -8,34 +8,83 @@ def featureFlagListCompile(log, details, all_tags):
     log.debug('Gathering feature flags.')
 
     # Get the contents of the feature flags file
+    jsonDefaultAPIDocs = {
+        "name": "default",
+        "location": "test,production"
+        }
+
     jsonStaging = {
         "name": "staging",
         "location": "draft,review"
         }
+
+    jsonStagingAPIDocs = {
+        "name": "staging",
+        "location": "test"
+        }
+
     jsonStagingAllowlist = {
         "name": "staging",
         "location": "draft"
         }
+
     jsonProd = {
         "name": "prod",
         "location": "publish"
         }
+
     jsonProdReady = {
         "name": "review-publish",
         "location": "review,publish"
         }
 
     def IBMCloudFFUpdate(featureFlags):
-        if details['ibm_cloud_docs'] is True and 'cloud-api-docs' not in str(details['source_github_org']):
-            if '\'staging\'' not in str(featureFlags) and 'cloud-docs-allowlist' in str(details['source_github_org']) and 'draft' in all_tags:
+        if details['ibm_cloud_docs'] is True:
+
+            if ('\'default\'' not in str(featureFlags) and
+                    ('cloud-api-docs' in str(details['source_github_org']) or
+                     'cloud-api-docs-allowlist' in str(details['source_github_org'])) and
+                    'test' in all_location_names and 'production' in all_location_names):
+
+                featureFlags.append(jsonDefaultAPIDocs)
+
+            if ('\'staging\'' not in str(featureFlags) and
+                    'cloud-docs-allowlist' in str(details['source_github_org']) and
+                    'draft' in all_location_names):
+
                 featureFlags.append(jsonStagingAllowlist)
-            elif '\'staging\'' not in str(featureFlags) and 'draft' in all_tags and 'review' in all_tags:
+
+            if ('\'staging\'' not in str(featureFlags) and
+                    ('cloud-api-docs' in str(details['source_github_org']) or
+                     'cloud-api-docs-allowlist' in str(details['source_github_org'])) and
+                    'test' in all_location_names):
+
+                featureFlags.append(jsonStagingAPIDocs)
+
+            if ('\'staging\'' not in str(featureFlags) and
+                    'cloud-api-docs' not in str(details['source_github_org']) and
+                    'cloud-api-docs-allowlist' not in str(details['source_github_org']) and
+                    'draft' in all_location_names and
+                    'review' in all_location_names):
+
                 featureFlags.append(jsonStaging)
-            if '\'prod\'' not in str(featureFlags) and 'publish' in all_tags:
+
+            if ('\'prod\'' not in str(featureFlags) and
+                    'cloud-api-docs' not in str(details['source_github_org']) and
+                    'cloud-api-docs-allowlist' not in str(details['source_github_org']) and
+                    'publish' in all_location_names):
+
                 featureFlags.append(jsonProd)
-            if ('\'review-publish\'' not in str(featureFlags) and 'cloud-docs-allowlist' not in
-                    str(details['source_github_org']) and 'review' in all_tags and 'publish' in all_tags):
+
+            if ('\'review-publish\'' not in str(featureFlags) and
+                    'cloud-docs-allowlist' not in str(details['source_github_org']) and
+                    'cloud-api-docs' not in str(details['source_github_org']) and
+                    'cloud-api-docs-allowlist' not in str(details['source_github_org']) and
+                    'review' in all_location_names and
+                    'publish' in all_location_names):
+
                 featureFlags.append(jsonProdReady)
+
         return (featureFlags)
 
     featureFlags = []

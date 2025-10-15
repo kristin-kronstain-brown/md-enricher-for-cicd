@@ -2,6 +2,25 @@
 
 Notable changes to this project are documented in this file.
 
+## Version 1.3.0.2.202501013
+
+- Expanded support for valid tag styling in JSON and YAML to the highest level.
+- Added error for invalid tags that are used in valid tag YAML and JSON styling.
+
+## Version 1.3.0.1.202501003
+
+- IBM Cloud Docs bug fix only.
+
+## Version 1.3.0.0.202501003
+
+- Adds support for valid tag styling in JSON and YAML.
+- Adds `location_tag_processing` key in the `locations.json`. Valid values are `on` or `off`.
+- Prevents `.vscode` from being pushed downstream.
+- Removes support for `--unprocessed` flag.
+- Removes support for `--feature_flag_migration` flag.
+- Adds support for JSON location handling in the feature flag file in addition to comma-separated list.
+- Replaces `.travis.yml` with `Jenkinsfile`.
+
 ## Version 1.2.9.3.20250717
 
 - Bug fix: Files of unsupported file types are not removed downstream.
@@ -43,7 +62,7 @@ Notable changes to this project are documented in this file.
 
 ## Version 1.2.8.2.20250121
 <ul>
-<li>Improved messaging when Github is not acessible.</li>
+<li>Improved messaging when Github is not accessible.</li>
 <li>Added check for <code>LAST_UPDATED_DATE</code> and <code>CURRENT_YEAR</code> variables that might have been committed downstream by another user.</li>
 <li>Standardized response validation made with <code>requests</code>.</li>
 <li>Bug fixes:</li>
@@ -251,7 +270,7 @@ Notable changes to this project are documented in this file.
 <li>Continued issues with including snippets in comments.</li>
 <li>Snippets with <code>ME_ignore</code> indicator not handled properly.</li>
 <li><code>fatal: No remote for the current branch</code> displays in console when pushing results to a new branch. </li>
-<li>Intermittant <code>The repo could not be cloned</code> errors for branches that already existed.</li>
+<li>Intermittent <code>The repo could not be cloned</code> errors for branches that already existed.</li>
 <li>Jenkins <code>BUILD_URL</code> environment variable displays as <code>None</code>.</li>
 <li>Warning to remove <code>.drawio.svg</code> images from upstream.</li>
 <li><code>failed to push some refs</code> error on push downstream on repo with more than 100 branches.</li>

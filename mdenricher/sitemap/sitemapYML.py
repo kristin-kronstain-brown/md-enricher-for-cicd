@@ -501,24 +501,25 @@ def sitemapYML(self, details, topicContents):
                             # getFileContents(file,navtitle,topicGroup,nestedTOC,predictedFilePath)
                             sitemapList = getFileContents(topicInfo, navtitle, topicGroup, nestedTOC, predictedFilePath, sitemapAnchorList, sitemapList)
                         elif topicInfo['topic']:
-                            file_name = topicInfo['topic']
+                            file_name_short = topicInfo['topic']
                             try:
                                 navtitle = topicInfo['navtitle']
                             except Exception:
                                 navtitle = False
                             if relativeTOC is False:
-                                file_name = self.location_dir + '/' + file_name
+                                file_name = self.location_dir + '/' + file_name_short
                             else:
-                                file_name = predictedFilePath + '/' + file_name
+                                file_name = predictedFilePath + '/' + file_name_short
 
                             if os.path.isfile(file_name):
                                 # getFileContents(file,navtitle,topicGroup,nestedTOC,predictedFilePath)
                                 sitemapList = getFileContents(file_name, navtitle, topicGroup, nestedTOC, predictedFilePath, sitemapAnchorList, sitemapList)
                             else:
-                                addToErrors('The topic referenced in the TOC does not exist and its contents could not be included in the sitemap: ' +
-                                            file_name.replace(self.location_dir, ''),
-                                            location_sitemap_file, location_sitemap_file, details,
-                                            self.log, self.location_name, '', '')
+                                if not self.all_files_dict['/' + file_name_short]['locationHandling'] == 'remove' and not file_name_short == 'sitemap.md':
+                                    addToErrors('The topic referenced in the TOC does not exist and its contents could not be included in the sitemap: ' +
+                                                file_name.replace(self.location_dir, ''),
+                                                location_sitemap_file, location_sitemap_file, details,
+                                                self.log, self.location_name, '', '')
                         elif topicInfo['href']:
                             self.log.debug('Handling links!')
                             sitemapList = getLink(linkIntro, topicInfo, topicGroup, sitemapList)

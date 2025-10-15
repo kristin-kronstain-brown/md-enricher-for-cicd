@@ -1,11 +1,11 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 # Notices
 
-When running the Markdown Enricher in Travis or Jenkins, the author of the commit is collected (`commit` > `author` > `name`) from the Github Enterprise API. This name is used to help teams of writers know who is responsible for which warnings and errors.
+When running the Markdown Enricher in a CI/CD build tool, the author of the commit is collected (`commit` > `author` > `name`) from the Github Enterprise API. This name is used to help teams of writers know who is responsible for which warnings and errors.
 
 This personal information can be included in:
 * Log files: The log files are stored in the `<source-branch>-logs` branch of the upstream Github repository.

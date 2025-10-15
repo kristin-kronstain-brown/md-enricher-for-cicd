@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: Apache2.0
 #
 
-def checkLocationsPaths(details, folderAndFile, location_contents_files, location_contents_folders, remove_all_other_files_folders, log):
+def checkLocationsPaths(details, folderAndFile, location_contents_files,
+                        location_contents_folders, location_tag_processing,
+                        remove_all_other_files_folders, log):
 
     # Based on what is in the locations_contents, parse the downstream paths of files and folders
 
@@ -75,14 +77,18 @@ def checkLocationsPaths(details, folderAndFile, location_contents_files, locatio
         locationHandling = 'remove'
         locationFileMatch = True
 
+    if (not location_tag_processing == 'on') and (details['featureFlagFile'] == folderAndFile):
+        locationHandling = 'keep'
+        locationFileMatch = True
+
     # See if any of these files should be automatically set to remove
     ignoreFileNames = ['cloudoekeyrefs.yml', 'toc_schema.json', 'user-mapping.json']
     ignoreWholePaths = [details["locations_file"], details["slack_user_mapping"]]
     if (locationFileMatch is False and
             ((folderAndFile in ignoreFileNames) or
-             (folderAndFile.endswith(tuple(details["img_src_filetypes"])) and details['unprocessed'] is False) or
-             (details["source_dir"] + folderAndFile in ignoreWholePaths) or
-             (folderAndFile == details['featureFlagFile'] and details['unprocessed'] is False))):
+             (folderAndFile.endswith(tuple(details["img_src_filetypes"]))) or
+             (folderAndFile == details['featureFlagFile']) or
+             (details["source_dir"] + folderAndFile in ignoreWholePaths))):
         locationHandling = 'remove'
         locationFileMatch = True
 

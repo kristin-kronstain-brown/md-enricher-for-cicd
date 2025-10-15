@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-07-17
+# Last updated: 2025-10-13
 -->
 
 - Getting started
@@ -9,7 +9,6 @@
   - [Notices](notices.md)
 - Setting up
   - [Setting up](setup.md)
-  - [Running in Travis](travis.md)
   - [Running in Jenkins](jenkins.md)
   - [Running locally](local.md)
 - Usage

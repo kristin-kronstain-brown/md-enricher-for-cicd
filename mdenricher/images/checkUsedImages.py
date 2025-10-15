@@ -27,8 +27,8 @@ def checkUsedImages(self, details):
                         ('.git' not in path) and
                         (not entry.startswith('.git')) and
                         ('.pre-commit-config.yaml' not in entry)):
-                    if '/reuse-snippets' in path:
-                        pathRevised = path.split('/reuse-snippets')[0]
+                    if '/' + details['reuse_snippets_folder'] in path:
+                        pathRevised = path.split('/' + details['reuse_snippets_folder'])[0]
                     else:
                         pathRevised = path
                     with open(path + '/' + entry, 'r', encoding="utf8", errors="ignore") as fileName_open:
@@ -84,7 +84,7 @@ def checkUsedImages(self, details):
 
                     for originalFileName in self.imagesUsedInThisBuild[downstreamImage]:
                         try:
-                            if ('reuse-snippets' not in ','.join(self.imagesUsedInThisBuild[downstreamImage][originalFileName]['files'])):
+                            if (details['reuse_snippets_folder'] not in ','.join(self.imagesUsedInThisBuild[downstreamImage][originalFileName]['files'])):
                                 addToWarnings(originalFileName + ' image does not exist as referenced in downstream ' + self.location_name + ' file: ' +
                                               ','.join(self.imagesUsedInThisBuild[downstreamImage][originalFileName]['files']),
                                               originalFileName, originalFileName, details, self.log, self.location_name, '', '')

@@ -5,7 +5,7 @@
 
 def start():
 
-    versionNumber = '1.2.9.3.20250717'
+    versionNumber = '1.3.0.2.202501013'
 
     # Process the command-line options
 
@@ -33,8 +33,6 @@ def start():
                            'List the comma-separated flags without spaces between them.')
 
     my_parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
-
-    my_parser.add_argument('--feature_flag_migration', action='store_true', help=argparse.SUPPRESS)
 
     my_parser.add_argument('--gh_token', action='store', type=str,
                            help='The Github token to access the upstream and downstream repositories.')
@@ -104,9 +102,6 @@ def start():
     my_parser.add_argument('--test_only', action='store_true',
                            help='Performs a check without pushing the results anywhere.')
 
-    my_parser.add_argument('--unprocessed', action='store_true',
-                           help='Use the Markdown Enricher to move files, but do not process content. Tags and styling remain.')
-
     my_parser.add_argument('--unprocessed_update', action='store',
                            nargs='?', type=none_or_str, default=False,
                            help='Use the Markdown Enricher to move unprocessed files from downstream to upstream.')
@@ -123,7 +118,6 @@ def start():
     cleanup_flags_and_content = args.cleanup_flags_and_content
     cleanup_flags_not_content = args.cleanup_flags_not_content
     debug = args.debug
-    feature_flag_migration = args.feature_flag_migration
     gh_username = args.gh_username
     gh_token = args.gh_token
     ibm_cloud_docs = args.ibm_cloud_docs
@@ -147,7 +141,6 @@ def start():
     slack_webhook = args.slack_webhook
     source_dir = args.source_dir
     test_only = args.test_only
-    unprocessed = args.unprocessed
     unprocessed_update = args.unprocessed_update
     validation = args.validation
     version = args.version
@@ -190,7 +183,6 @@ def start():
         from mdenricher.main import main
         main(builder,
              debug,
-             feature_flag_migration,
              gh_username,
              gh_token,
              ibm_cloud_docs,
@@ -212,7 +204,6 @@ def start():
              slack_webhook,
              source_dir,
              test_only,
-             unprocessed,
              unprocessed_update,
              validation,
              versionNumber)
