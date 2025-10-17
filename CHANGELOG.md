@@ -2,14 +2,21 @@
 
 Notable changes to this project are documented in this file.
 
+## Version 1.3.0.3.202501017
+
+- IBM Cloud Docs bug fixes only.
+
+
 ## Version 1.3.0.2.202501013
 
 - Expanded support for valid tag styling in JSON and YAML to the highest level.
 - Added error for invalid tags that are used in valid tag YAML and JSON styling.
 
+
 ## Version 1.3.0.1.202501003
 
 - IBM Cloud Docs bug fix only.
+
 
 ## Version 1.3.0.0.202501003
 
@@ -21,9 +28,11 @@ Notable changes to this project are documented in this file.
 - Adds support for JSON location handling in the feature flag file in addition to comma-separated list.
 - Replaces `.travis.yml` with `Jenkinsfile`.
 
+
 ## Version 1.2.9.3.20250717
 
 - Bug fix: Files of unsupported file types are not removed downstream.
+
 
 ## Version 1.2.9.2.20250710
 
@@ -32,11 +41,13 @@ Notable changes to this project are documented in this file.
     - CVE-2024-47081: Python `requests` module minimum version 2.32.4 required.
     - CVE-2025-50181 and CVE-2025-50182: With the update to the `requests` module, Python `urllib3` module minimum version 2.5.0 is also required.
 
+
 ## Version 1.2.9.1.20250505
 
 - Ignore missing image file warnings for images with `non-existent-image` in the name.
 - When checking for mismatched tag possibilities, if the tag is not in the feature flag file, is not a specified location, and includes an underscore, it is not reported. Common example variables (`<username>`, `<password>`, and `<value>`) are also not reported.
 - Bug fix: Images not removed from downstream when removed from source repo.
+
 
 ## Version 1.2.9.0.20250311
 

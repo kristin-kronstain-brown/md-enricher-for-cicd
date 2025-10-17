@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-10-13
+# Last updated: 2025-10-17
 -->
 
 # Environment variables reference
