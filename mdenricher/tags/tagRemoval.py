@@ -100,8 +100,10 @@ def tagRemoval(self, details, folderAndFile, topicContents):
 
         # Put quotation marks back into toc.yaml
         if details['ibm_cloud_docs'] is True and 'toc.yaml' in folderAndFile and '"' in topicContentsOriginal:
-            quotationMarkEntries = re.findall(': "(.*?)"', topicContentsOriginal)
+            quotationMarkEntries = re.findall(': "(.*?)\n', topicContentsOriginal)
             for quotationMarkEntry in quotationMarkEntries:
-                topicContents = topicContents.replace(': ' + quotationMarkEntry, ': "' + quotationMarkEntry + '"')
+                while quotationMarkEntry.endswith(' ') or quotationMarkEntry.endswith('"'):
+                    quotationMarkEntry = quotationMarkEntry[:-1]
+                topicContents = topicContents.replace(': ' + quotationMarkEntry + '\n', ': "' + quotationMarkEntry + '"\n')
 
     return (topicContents, self.all_files_dict)
