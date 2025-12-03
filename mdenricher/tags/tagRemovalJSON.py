@@ -133,7 +133,7 @@ def tagRemovalJSON(self, details, folderAndFile, topicContents):
         topicContentsJSON = topicContents
         if folderAndFile.endswith('.json'):
             topicContentsJSON = json.loads(topicContents)
-            topicContentsJSON = json.dumps(topicContentsJSON, sort_keys=False, indent=2)
+            topicContentsJSON = json.dumps(topicContentsJSON, sort_keys=False, indent=2, ensure_ascii=False)
         elif folderAndFile.endswith('.yaml') or folderAndFile.endswith('.yml'):
             flagNames = ['flag', 'tag', 'x-visible-environment']
             # Single TOC
@@ -153,7 +153,7 @@ def tagRemovalJSON(self, details, folderAndFile, topicContents):
                     if topicContentsJSON is not None:
                         break
                     topicContentsJSON = remove_by_key_value(topicContentsJSON, flagName)
-            topicContentsJSON = yaml.dump(topicContentsJSON, default_flow_style=False, sort_keys=False, width=1000)
+            topicContentsJSON = yaml.dump(topicContentsJSON, default_flow_style=False, sort_keys=False, width=1000, allow_unicode=True)
 
     except Exception as e:
         if self.location_tag_processing == 'on':

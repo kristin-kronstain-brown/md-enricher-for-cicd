@@ -34,6 +34,9 @@ def comments(self, details, folderAndFile, topicContents):
             elif 'ME_ignore' in comment:
                 self.log.debug('Not removing comment to ignore.')
 
+            elif '<qna:' in comment or '</qna:' in comment:
+                self.log.debug('Not removing qna ID comments.')
+
             # Don't remove comments that have style tags around them
             elif '<style><!--' + comment + '--></style>' in topicContents:
                 self.log.debug('Not removing comment because it is within style tags: ' + comment)
