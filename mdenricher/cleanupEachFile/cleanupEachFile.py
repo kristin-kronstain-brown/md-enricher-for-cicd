@@ -121,7 +121,15 @@ def cleanupEachFile(self, details):
                                 os.remove(self.location_dir + folderPath + file_name)
                                 self.log.debug(source_file + ' was removed in the upstream repo. Deleting ' +
                                                folderPath + file_name + ' from ' + self.location_name + ' as well.')
-                        else:
+                        elif details['images_include_always'] is True or (details['ibm_cloud_docs'] is True and details['source_github_repo'] == 'icons'):
+                            if os.path.isfile(self.location_dir + folderPath + file_name):
+                                os.remove(self.location_dir + folderPath + file_name)
+                            if 'keep' in self.all_files_dict[folderAndFile]['locationHandling']:
+                                if not os.path.isdir(self.location_dir + folderPath):
+                                    os.makedirs(self.location_dir + folderPath)
+                                shutil.copyfile(details['source_dir'] + folderAndFile, self.location_dir + folderPath + file_name)
+                            self.log.debug('Copying image downstream.')
+                        elif details['images_include_always'] is False:
                             self.log.debug('Images handled at the end of the build.')
 
                     elif file_name.endswith(tuple(details["filetypes"])):

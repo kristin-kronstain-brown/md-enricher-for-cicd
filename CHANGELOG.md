@@ -2,6 +2,23 @@
 
 Notable changes to this project are documented in this file.
 
+## Version 1.3.1.2.20251203
+
+- In output file generation, set `ensure_ascii=False` for JSON output and `allow_unicode=True` for YAML output.
+
+## Version 1.3.1.1.202501111
+
+- In the downstream output, added HTML comments around tags in the format `<qna:ID>`. Example: `<!--<qna:ID>-->`
+- Added `--images_include_always` to improve flexibility of image check handling.
+
+## Version 1.3.1.0.202501105
+
+- Added `qna` key removal from markdown metadata.
+- Allowed tags in the format `<qna:ID>` to remain in downstream output. 
+- Removed extra error logs from console.
+- Bug fix: `--rebuild_all_files` does not rebuild all files.
+
+
 ## Version 1.3.0.3.202501017
 
 - IBM Cloud Docs bug fixes only.

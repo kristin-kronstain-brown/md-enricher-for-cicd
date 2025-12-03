@@ -91,11 +91,11 @@ def exitBuild(details, log):
     if os.path.exists(details["error_file"]):
         with open(details["error_file"], 'r', encoding="utf8", errors="ignore") as file_open:
             errorList = file_open.read()
-            log.info('Error list before instance cleanup:')
-            log.info(errorList)
+            log.debug('Error list before instance cleanup:')
+            log.debug(errorList)
             errorList = instanceCleanup(details, errorList, log, logBranchCommit)
-            log.info('Error list after instance cleanup:')
-            log.info(errorList)
+            log.debug('Error list after instance cleanup:')
+            log.debug(errorList)
             errors = errorList.count('ERROR:')
             errorLinks = re.findall('<http(.*?)>', errorList)
             errorListNoLinks = errorList

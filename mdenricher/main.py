@@ -55,6 +55,7 @@ def main(
          ibm_cloud_docs_sitemap_depth,
          ibm_cloud_docs_sitemap_rebuild_always,
          ibm_docs,
+         images_include_always,
          locations_file,
          output_dir,
          rebuild_all_files,
@@ -247,9 +248,11 @@ def main(
                 self.location_github_repo = location_github_repo
 
                 startTimeSection = debugTimerStart()
-                if self.source_files_original_list == {}:
-                    source_files_location_list = self.all_files_dict
-                elif details['featureFlagFile'] in self.source_files_commit_list or '/toc.yaml' in self.source_files_commit_list:
+                if (self.source_files_original_list == {} or
+                        details['builder'] == 'local' or
+                        details['rebuild_all_files'] is True or
+                        details['featureFlagFile'] in self.source_files_commit_list or
+                        '/toc.yaml' in self.source_files_commit_list):
                     source_files_location_list = self.all_files_dict
                     self.log.debug('toc.yaml or feature flag file found in original list. Rebuilding all.')
                 else:
@@ -457,9 +460,10 @@ def main(
                     debugTimerEnd(self, details, 'cleanup', startTimeSection)
 
                     # After all of the content files are updated, update the images
-                    startTimeSection = debugTimerStart()
-                    self.unusedInThisLocation = checkUsedImages(self, details)
-                    debugTimerEnd(self, details, 'images cleanup', startTimeSection)
+                    if details['images_include_always'] is False:
+                        startTimeSection = debugTimerStart()
+                        self.unusedInThisLocation = checkUsedImages(self, details)
+                        debugTimerEnd(self, details, 'images cleanup', startTimeSection)
 
                     # Don't actually push the updated files if any of these ifs are met
                     # self.log.info(json.dumps(self.source_files, indent=2))
@@ -527,6 +531,7 @@ def main(
         details.update({"ibm_cloud_docs_sitemap_depth": ibm_cloud_docs_sitemap_depth})
         details.update({"ibm_cloud_docs_sitemap_rebuild_always": ibm_cloud_docs_sitemap_rebuild_always})
         details.update({"ibm_docs": ibm_docs})
+        details.update({"images_include_always": images_include_always})
         details.update({"slack_bot_token": slack_bot_token})
         details.update({"slack_channel": slack_channel})
         details.update({"slack_post_start": slack_post_start})

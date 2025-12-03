@@ -1,7 +1,7 @@
 <!--
 # Copyright 2022, 2025 IBM Inc. All rights reserved
 # SPDX-License-Identifier: Apache2.0
-# Last updated: 2025-10-17
+# Last updated: 2025-12-03
 -->
 
 # `mdenricher` command options reference
@@ -13,6 +13,7 @@
 |`--cleanup_flags_not_content <tag1,tag2,tag3>`| Optional. Include locally with `--source_dir` to remove an outdated feature flag from all files in the directory, but not the content within it. For example, you might have set new content within a specific flag to `all` or all of the locations it needs to be in, so now that flag can be removed, but the content within the tags must remain. Separate more than one tag with a comma. Do not include spaces.|
 |`--gh_token`| The Github token to access the upstream and downstream repositories.|
 |`--gh_username`| The Github username to access the upstream and downstream repositories.|
+|`--images_include_always`|Optional. Always include images in the downstream output, whether they are used in supported file types or not.|
 |`--locations_file <path_to_locations_file>`|Required. The path to the JSON file of locations to create content for.|
 |`--output_dir <path_to_output_directory>`|Optional. The path to the output location.|
 |`--rebuild_files <file1,file2,file3>`|Optional. Force a rebuild of specific files no matter what changes kicked off the build. For multiple files, include them as a comma-separated list. This flag is helpful for something like a landing page, so that the date updates even though the content itself does not change often. Example: `--rebuild_files landing.json,folder/file.md`|

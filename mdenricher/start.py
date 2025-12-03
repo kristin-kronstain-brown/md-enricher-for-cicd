@@ -5,7 +5,7 @@
 
 def start():
 
-    versionNumber = '1.3.0.3.202501017'
+    versionNumber = '1.3.1.2.20251203'
 
     # Process the command-line options
 
@@ -63,6 +63,9 @@ def start():
                            help='Force the regeneration of the sitemap on every build. For services that reuse content in other repos.')
 
     my_parser.add_argument('--ibm_docs', action='store_true', help='Identifies repos as IBM Docs repos.')
+
+    my_parser.add_argument('--images_include_always', action='store_true',
+                           help='Always include images in the downstream output, whether the image is used in the supported file types or not.')
 
     my_parser.add_argument('--locations_file', action='store', type=str,
                            help='The path to the JSON file of locations to create content for.')
@@ -128,6 +131,7 @@ def start():
     ibm_cloud_docs_sitemap_depth = args.ibm_cloud_docs_sitemap_depth
     ibm_cloud_docs_sitemap_rebuild_always = args.ibm_cloud_docs_sitemap_rebuild_always
     ibm_docs = args.ibm_docs
+    images_include_always = args.images_include_always
     locations_file = args.locations_file
     output_dir = args.output_dir
     rebuild_all_files = args.rebuild_all_files
@@ -191,6 +195,7 @@ def start():
              ibm_cloud_docs_sitemap_depth,
              ibm_cloud_docs_sitemap_rebuild_always,
              ibm_docs,
+             images_include_always,
              locations_file,
              output_dir,
              rebuild_all_files,

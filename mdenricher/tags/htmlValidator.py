@@ -39,8 +39,10 @@ def htmlValidator(self, details, file_name, folderAndFile, folderPath, topicCont
                 self.log.debug('Common variable names used and interpreted as a variable instead of a tag: ' + errorTagSlim)
             elif errorTagSlim in self.tags_ignore:
                 self.log.debug(errorTagSlim + ' intentionally remains in the content.')
+            elif 'qna:' in errorTagSlim:
+                self.log.debug(errorTagSlim + ' intentionally remains in the content.')
             else:
-                addToWarnings(errorTag + ' appears to be a tag and is not removed or handled properly. ', folderAndFile, folderPath + file_name,
+                addToWarnings(errorTag + ' appears to be a tag and is not removed or handled properly.', folderAndFile, folderPath + file_name,
                               details, self.log, self.location_name, errorTag, topicContentsCheck)
 
     def check(topicContents, folderPath, file_name, tag):
