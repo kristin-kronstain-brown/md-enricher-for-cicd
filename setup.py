@@ -8,8 +8,8 @@ from setuptools import setup
 if __name__ == "__main__":
     setup(
     name='doctopus-markdown-enricher',
-    python_requires='>3.8.0',
-    version='1.3.1.2.20251203',
+    python_requires='>3.9.0',
+    version='1.3.2.0.20251217',
     description='Single source your markdown documentation.',
     author='Kristin Brown',
     author_email='kakronst@us.ibm.com',
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         'flatten-json',
         'pytz>=2022.2.1',
         'PyYAML>=6.0',
-        'requests>=2.32.4',
+        'requests>=2.32.5',
         'python-dotenv>=0.20.0',
         'jsonschema',
         'slack_sdk'

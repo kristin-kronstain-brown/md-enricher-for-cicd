@@ -2,6 +2,20 @@
 
 Notable changes to this project are documented in this file.
 
+## Version 1.3.2.0.20251217
+
+- Added warning check for merge conflict text.
+- Added check that the branch specified as `source_github_branch` in the locations file exists.
+- Bug fixes:
+    - With the `--unprocessed_update` flag, files end up in the `reuse-pages` folder that should not be there.
+    - Image references in markdown that have newlines in the alt text are not pushed downstream correctly.
+
+## Version 1.3.1.3.20251208
+
+- Updated required Python version to 3.9.0 or later.
+- Bug fixes
+    - CVE-2025-66471: Python `requests` module minimum version 2.32.5 required.
+
 ## Version 1.3.1.2.20251203
 
 - In output file generation, set `ensure_ascii=False` for JSON output and `allow_unicode=True` for YAML output.

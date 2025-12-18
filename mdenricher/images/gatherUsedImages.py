@@ -109,7 +109,7 @@ def gatherUsedImages(self, details, imagePath, sourceFile, topicContents):
         # Remove the end of any snippets that might be used in the alt text first
         topicContents = topicContents.replace(']}', '')
         # Replace all markdown alt text with nothing just in case there are parens in the alt text before getting images in markdown format
-        markdownAltTexts = re.findall(r'\!\[.*?\]', topicContents)
+        markdownAltTexts = re.findall(r'\!\[.*?\]', topicContents, flags=re.DOTALL)
         for markdownAltText in markdownAltTexts:
             topicContents = topicContents.replace(markdownAltText, '!')
         # Get images in markdown format

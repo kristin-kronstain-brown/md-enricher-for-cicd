@@ -11,13 +11,29 @@ def config(log, details, locations_config):
     # from mdenricher.errorHandling.errorHandling import addToErrors
     # from mdenricher.setup.exitBuild import exitBuild
 
-    # import os
+    import os
+    import subprocess
 
     # Get the source branch from the config info
     try:
         source_github_branch = locations_config["source_github_branch"]
     except KeyError:
         source_github_branch = 'None'
+
+    try:
+        # If the clone happens without auth, then this command won't work.
+        os.chdir(details['source_dir'])
+        branches = []
+        branchResponse = subprocess.check_output(['git ls-remote --heads --quiet'], stderr=subprocess.STDOUT, shell=True)
+        branchResponseDecoded = branchResponse.decode("utf-8")
+        if '\n' in branchResponseDecoded:
+            branchesList = branchResponseDecoded.split('\n')
+            for line in branchesList:
+                if 'refs/heads/' in line:
+                    branches.append(line.rsplit('refs/heads/', 1)[1])
+    except Exception:
+        branches = []
+    details.update({"branches": branches})
     details.update({"source_github_branch": str(source_github_branch)})
 
     # If there isn't a source branch specified, don't set the log branch or last commit ID file either
