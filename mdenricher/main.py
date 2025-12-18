@@ -367,8 +367,8 @@ def main(
                             file_name = self.source_files[source_file]['file_name']
                             folderPath = self.source_files[source_file]['folderPath']
                             if os.path.isfile(self.location_dir + folderPath + file_name):
-                                downstreamHandlesFiles.append(folderPath + file_name)
                                 if os.path.isfile(details['source_dir'] + folderAndFile):
+                                    downstreamHandlesFiles.append(folderPath + file_name)
                                     shutil.copyfile(self.location_dir + folderPath + file_name, details['source_dir'] + folderAndFile)
                                     self.log.info('Unprocessed update for existing file in ' +
                                                   self.location_name + ': ' + folderPath + file_name + ' to ' + folderAndFile)

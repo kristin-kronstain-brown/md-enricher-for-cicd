@@ -371,6 +371,18 @@ def cleanupEachFile(self, details):
                 from mdenricher.errorHandling.ymlCheck import ymlCheck
                 ymlCheck(self, details, 'True', [folderPath + file_name], [folderAndFile], self.location_dir, self.location_name)
 
+            if '=======' in topicContents and '========' not in topicContents:
+                addToWarnings(source_file + ' contains =======, which could be merge conflict text inserted by Github.',
+                              folderAndFile, folderPath + file_name, details, self.log, self.location_name, '', '')
+
+            if '<<<<<<<' in topicContents and '<<<<<<<<' not in topicContents:
+                addToWarnings(source_file + ' contains <<<<<<<, which could be merge conflict text inserted by Github.',
+                              folderAndFile, folderPath + file_name, details, self.log, self.location_name, '', '')
+
+            if '>>>>>>>' in topicContents and '>>>>>>>>' not in topicContents:
+                addToWarnings(source_file + ' contains >>>>>>>, which could be merge conflict text inserted by Github.',
+                              folderAndFile, folderPath + file_name, details, self.log, self.location_name, '', '')
+
             if details['debug'] is True:
                 startTime = time.time()
             if '.json' not in folderAndFile:

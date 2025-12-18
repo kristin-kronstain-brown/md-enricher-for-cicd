@@ -28,6 +28,14 @@ def writeResult(self, details, file_name, folderAndFile, folderPath, topicConten
     # Otherwise, write it
     else:
         topicContents = comments(self, details, folderAndFile, topicContents)
+
+        try:
+            from mdenricher.internal.locations.internalServerCheck import internalServerCheck
+        except Exception:
+            pass
+        else:
+            internalServerCheck(self, details, file_name, folderAndFile, folderPath, topicContents)
+
         if folderAndFile in self.all_files_dict:
             # Open the file for writing
             write = False
